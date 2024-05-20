@@ -8,4 +8,6 @@ class ApiService {
   static String businessTypeUrl = "${baseUrl}get-business-types";
   static String getProfileUrl = "${baseUrl}admin/profile";
   static String getProfileUpdateUrl = "${baseUrl}admin/profile/update";
+  static String deleteAccountUrl = "${baseUrl}admin/account-delete";
+  static String getBranchesUrl = "${baseUrl}admin/branches";
 }

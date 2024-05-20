@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:retinasoft_skill_test/network/service.dart';
+import 'package:retinasoft_skill_test/screens/auth/initial_screen.dart';
 import 'package:retinasoft_skill_test/screens/user/update_profile.dart';
 
 class Profile extends StatefulWidget {
@@ -66,22 +67,45 @@ class _ProfileState extends State<Profile> {
                 children: [
                   Text('Name: ${user['name']}', style: TextStyle(fontSize: 20)),
                   SizedBox(height: 8),
-                  Text('Email: ${user['email']}', style: TextStyle(fontSize: 20)),
+                  Text('Email: ${user['email']}',
+                      style: TextStyle(fontSize: 20)),
                   SizedBox(height: 8),
-                  Text('Phone: ${user['phone']}', style: TextStyle(fontSize: 20)),
+                  Text('Phone: ${user['phone']}',
+                      style: TextStyle(fontSize: 20)),
                   SizedBox(height: 8),
-                  Text('Business Name: ${user['business_name']}', style: TextStyle(fontSize: 20)),
+                  Text('Business Name: ${user['business_name']}',
+                      style: TextStyle(fontSize: 20)),
                   SizedBox(height: 8),
-                  Text('Business Type: ${user['business_type']}', style: TextStyle(fontSize: 20)),
+                  Text('Business Type: ${user['business_type']}',
+                      style: TextStyle(fontSize: 20)),
                   SizedBox(height: 8),
-                  Text('Branch: ${user['branch']}', style: TextStyle(fontSize: 20)),
+                  Text('Branch: ${user['branch']}',
+                      style: TextStyle(fontSize: 20)),
                   SizedBox(height: 50,),
                   Center(
-                    child: ElevatedButton(
-                        onPressed: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context)=>UpdateProfile(apiToken: widget.apiToken, name: user['name'], email: user['email'], phone: user['phone'], businessTypeId: user['business_type_id'].toString(),)));
-                        },
-                        child: Text('Update profile'),
+                    child: Column(
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(context, MaterialPageRoute(
+                                builder: (context) =>
+                                    UpdateProfile(apiToken: widget.apiToken,
+                                      name: user['name'],
+                                      email: user['email'],
+                                      phone: user['phone'],
+                                      businessTypeId: user['business_type_id']
+                                          .toString(),)));
+                          },
+                          child: Text('Update profile'),
+                        ),
+                        SizedBox(height: 50,),
+                        ElevatedButton(
+                          onPressed: () {
+                            deleteAccount();
+                          },
+                          child: Text('Delete Account'),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -92,4 +116,34 @@ class _ProfileState extends State<Profile> {
       ),
     );
   }
+  Future<void> deleteAccount() async {
+    final response = await http.get(
+      Uri.parse(ApiService.deleteAccountUrl),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${widget.apiToken}',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = json.decode(response.body);
+      if(responseData['status'] == 200){
+        Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) =>
+            InitialScreen()), (Route<dynamic> route) => false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(responseData['description'] ?? 'Account deleted successfully'),
+          ),
+        );
+      }else{
+        print(responseData);
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to delete account'),
+        ),
+      );
+    }
+}
 }
