@@ -3,10 +3,12 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:retinasoft_skill_test/network/service.dart';
-import 'package:retinasoft_skill_test/screens/business_type_screen.dart';
+
+import '../../../widgets/bottom_navbar.dart';
 
 class LoginScreen extends StatefulWidget {
   final String email;
+
   const LoginScreen({super.key, required this.email});
 
   @override
@@ -25,8 +27,13 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("Insert otp",style: TextStyle(fontSize: 40),),
-              SizedBox(height: 100,),
+              Text(
+                "Insert otp",
+                style: TextStyle(fontSize: 40),
+              ),
+              SizedBox(
+                height: 100,
+              ),
               TextField(
                 controller: _otpController,
                 decoration: InputDecoration(
@@ -38,13 +45,13 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(height: 16.0),
               ElevatedButton(
                 onPressed: () {
-                  if(_otpController.text.isEmpty){
+                  if (_otpController.text.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text("Please insert your otp first"),
                       ),
                     );
-                  }else{
+                  } else {
                     _login();
                   }
                 },
@@ -58,7 +65,6 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
-
     final response = await http.post(
       Uri.parse(ApiService.loginUrl),
       headers: <String, String>{
@@ -73,9 +79,15 @@ class _LoginScreenState extends State<LoginScreen> {
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = json.decode(response.body);
 
-      if(responseData['status'] == 200){
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>BusinessTypeScreen()));
-      }else{
+      if (responseData['status'] == 200) {
+        final user = responseData['user'];
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => BottomNavBar(
+                      apiToken: user['api_token'].toString(),
+                    )));
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(responseData['description']),
