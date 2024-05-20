@@ -1,6 +1,14 @@
 # retinasoft_skill_test
 
-A new Flutter project.
+this is a test project.
+I have used here,
+flutter sdk 3.19.6
+dart sdk 3.2.6
+
+
+
+
+
 
 ## Getting Started
 
