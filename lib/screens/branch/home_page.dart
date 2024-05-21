@@ -6,6 +6,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:retinasoft_skill_test/network/presenter.dart';
 import 'package:retinasoft_skill_test/screens/branch/create_branch.dart';
 import 'package:retinasoft_skill_test/screens/branch/update_branch.dart';
+import 'package:retinasoft_skill_test/screens/customer/customer_list.dart';
 
 import '../../models/branches_model.dart';
 import '../../network/service.dart';
@@ -39,21 +40,24 @@ class _HomePageState extends State<HomePage> {
         centerTitle: true,
         automaticallyImplyLeading: false,
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            branches.isEmpty?
-                Center(
-                  child: CircularProgressIndicator(),
-                ):
-            Expanded(
-              child: ListView.builder(
-              shrinkWrap: true,
-              padding: const EdgeInsets.all(15),
-              physics: AlwaysScrollableScrollPhysics(),
-              itemCount: branches.length,
-              itemBuilder: (context, index) {
-                return Card(
+      body: Column(
+        children: [
+          branches.isEmpty?
+              Center(
+                child: CircularProgressIndicator(),
+              ):
+          Expanded(
+            child: ListView.builder(
+            shrinkWrap: true,
+            padding: const EdgeInsets.all(15),
+            physics: AlwaysScrollableScrollPhysics(),
+            itemCount: branches.length,
+            itemBuilder: (context, index) {
+              return InkWell(
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context)=> CustomerList(apiToken: widget.apiToken, branchId: branches.elementAt(index).id,)));
+                },
+                child: Card(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Row(
@@ -86,19 +90,19 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                   ),
-                );
-              }
-              ),
+                ),
+              );
+            }
             ),
-            ElevatedButton(
-                onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context)=>CreateBranch(apiToken: widget.apiToken)));
-                },
-                child: Text('Create Branch'),
-            ),
-            SizedBox(height: 40,)
-          ],
-        ),
+          ),
+          ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context)=>CreateBranch(apiToken: widget.apiToken)));
+              },
+              child: Text('Create Branch'),
+          ),
+          SizedBox(height: 40,)
+        ],
       ),
     );
   }
