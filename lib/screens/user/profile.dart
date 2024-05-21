@@ -101,6 +101,13 @@ class _ProfileState extends State<Profile> {
                         SizedBox(height: 50,),
                         ElevatedButton(
                           onPressed: () {
+                            _callLogOutApi();
+                          },
+                          child: Text('Log Out'),
+                        ),
+                        SizedBox(height: 50,),
+                        ElevatedButton(
+                          onPressed: () {
                             deleteAccount();
                           },
                           child: Text('Delete Account'),
@@ -142,6 +149,37 @@ class _ProfileState extends State<Profile> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to delete account'),
+        ),
+      );
+    }
+}
+
+  Future<void> _callLogOutApi() async {
+    final response = await http.post(
+      Uri.parse(ApiService.logOutUrl),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${widget.apiToken}',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = json.decode(response.body);
+      if(responseData['status'] == 200){
+        Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) =>
+            InitialScreen()), (Route<dynamic> route) => false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(responseData['description'] ?? 'Logout success'),
+          ),
+        );
+      }else{
+        print(responseData);
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to logout'),
         ),
       );
     }

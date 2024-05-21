@@ -47,6 +47,13 @@ class _RegistrationOtpState extends State<RegistrationOtp> {
                 },
                 child: Text('Register'),
               ),
+              SizedBox(height: 10,),
+              InkWell(
+                onTap: () {
+                  _callResendOtp();
+                },
+                  child: Text('Resend OTP',style: TextStyle(color: Colors.red),),
+              ),
             ],
           ),
         ),
@@ -95,4 +102,34 @@ class _RegistrationOtpState extends State<RegistrationOtp> {
       );
     }
   }
+
+  Future<void> _callResendOtp() async {
+
+    final response = await http.post(
+      Uri.parse(ApiService.resendOtpUrl),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(<String, String>{
+        'email': widget.identifierId,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> responseData = json.decode(response.body);
+      if(responseData['status'] == 200){
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(responseData['description']),
+          ),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to Resend OTP')),
+      );
+    }
+  }
+
 }
