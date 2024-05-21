@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:retinasoft_skill_test/models/branches_model.dart';
 import 'package:retinasoft_skill_test/models/business_type_model.dart';
 import 'package:retinasoft_skill_test/models/customers_model.dart';
+import 'package:retinasoft_skill_test/models/transaction_list_model.dart';
 import 'package:retinasoft_skill_test/network/base_client.dart';
 import 'package:retinasoft_skill_test/network/service.dart';
 
@@ -68,6 +69,29 @@ Future<dynamic> initCustomerInfo(BuildContext context, String apiToken, String b
       return customersModel;
     } catch (e) {
       return initCustomerInfo(context, apiToken, branchId);
+    }
+  } else {
+    // return AppString.errorMsg;
+  }
+}
+
+Future<dynamic> initTransactionListInfo(BuildContext context, String apiToken, String branchId, String customerId) async {
+  String url = '${ApiService.baseUrl}admin/$branchId/customer/$customerId/transactions';
+
+  Map<String, String> headerMap = {
+    "Authorization": "Bearer $apiToken"
+  };
+
+  var response = await BaseClient().getMethodWithHeader(url, headerMap);
+
+  if (response != null) {
+    try {
+      TransactionListModel transactionListModel =
+      TransactionListModel.fromJson(json.decode(response));
+
+      return transactionListModel;
+    } catch (e) {
+      return initTransactionListInfo(context, apiToken, branchId, customerId);
     }
   } else {
     // return AppString.errorMsg;

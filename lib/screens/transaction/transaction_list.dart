@@ -1,31 +1,32 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:retinasoft_skill_test/models/transaction_list_model.dart';
 import 'package:retinasoft_skill_test/network/presenter.dart';
 import 'package:retinasoft_skill_test/screens/customer/create_customer.dart';
 import 'package:retinasoft_skill_test/screens/customer/update_customer.dart';
-import 'package:retinasoft_skill_test/screens/transaction/transaction_list.dart';
 
 import '../../models/customers_model.dart';
 import '../../network/service.dart';
 import 'package:http/http.dart' as http;
 
-class CustomerList extends StatefulWidget {
+class TransactionList extends StatefulWidget {
   final String apiToken;
   final String branchId;
-  const CustomerList({super.key, required this.apiToken, required this.branchId});
+  final String customerId;
+  const TransactionList({super.key, required this.apiToken, required this.branchId, required this.customerId});
 
   @override
-  State<CustomerList> createState() => _CustomerListState();
+  State<TransactionList> createState() => _TransactionListState();
 }
 
-class _CustomerListState extends State<CustomerList> {
+class _TransactionListState extends State<TransactionList> {
 
-  List<Customer> customerList = [];
+  List<Transaction> transactionList = [];
 
   @override
   void initState() {
-    _callCustomerListApi();
+    _transactionListApi();
     super.initState();
   }
 
@@ -33,13 +34,13 @@ class _CustomerListState extends State<CustomerList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Customer List'),
+        title: const Text('Transaction List'),
         centerTitle: true,
         automaticallyImplyLeading: false,
       ),
       body: Column(
         children: [
-          customerList.isEmpty?
+          transactionList.isEmpty?
           Center(
             child: CircularProgressIndicator(),
           ):
@@ -48,7 +49,7 @@ class _CustomerListState extends State<CustomerList> {
                 shrinkWrap: true,
                 padding: const EdgeInsets.all(15),
                 physics: AlwaysScrollableScrollPhysics(),
-                itemCount: customerList.length,
+                itemCount: transactionList.length,
                 itemBuilder: (context, index) {
                   return Card(
                     child: Padding(
@@ -60,30 +61,25 @@ class _CustomerListState extends State<CustomerList> {
                             crossAxisAlignment: CrossAxisAlignment.start,
 
                             children: [
-                              Text("Id : ${customerList.elementAt(index).id}"),
-                              Text("Name : ${customerList.elementAt(index).name}"),
-                              Text("Phone : ${customerList.elementAt(index).phone}"),
-                              Text("Balance : ${customerList.elementAt(index).balance}"),
+                              Text("Id : ${transactionList.elementAt(index).id}"),
+                              Text("Transaction No : ${transactionList.elementAt(index).transactionNo}"),
+                              Text("Amount : ${transactionList.elementAt(index).amount}"),
+                              Text("Transaction Date : ${transactionList.elementAt(index).transactionDate}"),
+                              Text("Details : ${transactionList.elementAt(index).details}"),
+                              Text("Bill No : ${transactionList.elementAt(index).billNo}"),
                             ],
                           ),
                           Row(
                             children: [
                               InkWell(
-                                onTap: (){
-                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>TransactionList(apiToken: widget.apiToken, branchId: widget.branchId, customerId: customerList.elementAt(index).id),),);
-                                },
-                                child: Text('Transactions'),
-                              ),
-                              SizedBox(width: 10,),
-                              InkWell(
                                 onTap: () {
-                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>UpdateCustomer(apiToken: widget.apiToken, branchId: widget.branchId, customerName: customerList.elementAt(index).name, phoneNumber: customerList.elementAt(index).phone, customerId: customerList.elementAt(index).id,)));
+                                  // Navigator.push(context, MaterialPageRoute(builder: (context)=>UpdateCustomer(apiToken: widget.apiToken, branchId: widget.branchId, customerName: transactionList.elementAt(index).name, phoneNumber: transactionList.elementAt(index).phone, customerId: transactionList.elementAt(index).id,)));
                                 },
                                 child: Text('Update'),
                               ),
                               IconButton(
                                 onPressed: () {
-                                  _deleteCustomerApi(widget.branchId, index, customerList.elementAt(index).id,);
+                                  // _deleteCustomerApi(widget.branchId, index, transactionList.elementAt(index).id,);
                                 },
                                 icon: Icon(Icons.delete_forever),
                               ),
@@ -98,7 +94,7 @@ class _CustomerListState extends State<CustomerList> {
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context)=>CreateCustomer(apiToken: widget.apiToken, branchId: widget.branchId,)));
+              // Navigator.push(context, MaterialPageRoute(builder: (context)=>CreateCustomer(apiToken: widget.apiToken, branchId: widget.branchId,)));
             },
             child: Text('Create Customer'),
           ),
@@ -108,20 +104,20 @@ class _CustomerListState extends State<CustomerList> {
     );
   }
 
-  Future<void> _callCustomerListApi() async {
+  Future<void> _transactionListApi() async {
     try {
-      List<CustomersModel> customersModel = [];
+      List<TransactionListModel> transactionListModel = [];
 
-      var customerInfo = await initCustomerInfo(context, widget.apiToken, widget.branchId);
+      var transactionListInfo = await initTransactionListInfo(context, widget.apiToken, widget.branchId, widget.customerId);
 
-      if (customerInfo is String) {
+      if (transactionListInfo is String) {
         //Error Message
       } else {
-        customersModel.add(customerInfo);
-        customerList.addAll(customersModel.elementAt(0).customers.customers);
+        transactionListModel.add(transactionListInfo);
+        transactionList.addAll(transactionListModel.elementAt(0).transactions.transactions);
 
         setState(() {
-          customerList;
+          transactionList;
         });
       }
 
@@ -131,6 +127,7 @@ class _CustomerListState extends State<CustomerList> {
     }
   }
 
+/*
   Future<void> _deleteCustomerApi(String branchId, int index, String customerId) async {
 
     final url = '${ApiService.baseUrl}admin/${branchId}/customer/${customerId}/delete';
@@ -147,7 +144,7 @@ class _CustomerListState extends State<CustomerList> {
       final Map<String, dynamic> responseData = json.decode(response.body);
       if(responseData['status'] == 200){
         setState(() {
-          customerList.removeAt(index);
+          transactionList.removeAt(index);
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Customer deleted successfully')),
@@ -159,4 +156,5 @@ class _CustomerListState extends State<CustomerList> {
       );
     }
   }
+*/
 }
