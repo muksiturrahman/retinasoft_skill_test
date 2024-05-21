@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:retinasoft_skill_test/models/branches_model.dart';
 import 'package:retinasoft_skill_test/models/business_type_model.dart';
 import 'package:retinasoft_skill_test/network/base_client.dart';
 import 'package:retinasoft_skill_test/network/service.dart';
@@ -19,6 +20,30 @@ Future<dynamic> initBusinessTypeInfo(BuildContext context) async {
       return businessTypeModel;
     } catch (e) {
       return initBusinessTypeInfo(context);
+    }
+  } else {
+    // return AppString.errorMsg;
+  }
+}
+
+
+Future<dynamic> initBranchesInfo(BuildContext context, String apiToken) async {
+  String url = ApiService.getBranchesUrl;
+
+  Map<String, String> headerMap = {
+    "Authorization": "Bearer ${apiToken}"
+  };
+
+  var response = await BaseClient().getMethodWithHeader(url, headerMap);
+
+  if (response != null) {
+    try {
+      BranchesModel branchesModel =
+      BranchesModel.fromJson(json.decode(response));
+
+      return branchesModel;
+    } catch (e) {
+      return initBranchesInfo(context, apiToken);
     }
   } else {
     // return AppString.errorMsg;

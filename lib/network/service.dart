@@ -10,4 +10,5 @@ class ApiService {
   static String getProfileUpdateUrl = "${baseUrl}admin/profile/update";
   static String deleteAccountUrl = "${baseUrl}admin/account-delete";
   static String getBranchesUrl = "${baseUrl}admin/branches";
+  static String createBranchUrl = "${baseUrl}admin/branch/create";
 }

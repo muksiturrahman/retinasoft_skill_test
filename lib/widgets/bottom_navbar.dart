@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:retinasoft_skill_test/screens/branch/home_page.dart';
 import '../screens/user/profile.dart';
 
 class BottomNavBar extends StatefulWidget {
@@ -21,7 +22,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
   void initState() {
     super.initState();
     _widgetOptions = <Widget>[
-      const HomeScreen(),
+      HomePage(apiToken: widget.apiToken),
       const SettingsScreen(),
       Profile(apiToken: widget.apiToken,),
     ];
@@ -58,17 +59,6 @@ class _BottomNavBarState extends State<BottomNavBar> {
         selectedItemColor: Colors.amber[800],
         onTap: _onItemTapped,
       ),
-    );
-  }
-}
-
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Home Screen'),
     );
   }
 }

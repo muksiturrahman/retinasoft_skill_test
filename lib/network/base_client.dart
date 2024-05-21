@@ -70,10 +70,28 @@ class BaseClient {
     }
   }
 
-  Future<dynamic> getMethodWithoutHeader(String baseUrl) async {
+  Future<dynamic> getMethodWithoutHeader(String baseUrl,) async {
     var url = Uri.parse(baseUrl);
+
     try {
       final response = await http.get(url);
+      return _processResponse(response);
+    } on SocketException {
+      print('No Internet connection');
+      return "{\"errorMessage\":\"No Internet connection\"}";
+    } on TimeoutException {
+      print('Api not responding');
+      return "{\"errorMessage\":\"Api not responding\"}";
+    } catch (e) {
+      print('Unknown error ' + e.toString());
+    }
+  }
+
+  Future<dynamic> getMethodWithHeader(String baseUrl, Map<String, String> headerMap) async {
+    var url = Uri.parse(baseUrl);
+
+    try {
+      final response = await http.get(url, headers: headerMap,);
       return _processResponse(response);
     } on SocketException {
       print('No Internet connection');
