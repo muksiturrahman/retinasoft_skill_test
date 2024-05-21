@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:retinasoft_skill_test/network/presenter.dart';
 import 'package:retinasoft_skill_test/screens/branch/create_branch.dart';
 import 'package:retinasoft_skill_test/screens/branch/update_branch.dart';

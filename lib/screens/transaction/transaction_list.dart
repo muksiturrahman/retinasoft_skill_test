@@ -5,6 +5,8 @@ import 'package:retinasoft_skill_test/models/transaction_list_model.dart';
 import 'package:retinasoft_skill_test/network/presenter.dart';
 import 'package:retinasoft_skill_test/screens/customer/create_customer.dart';
 import 'package:retinasoft_skill_test/screens/customer/update_customer.dart';
+import 'package:retinasoft_skill_test/screens/transaction/create_transaction.dart';
+import 'package:retinasoft_skill_test/screens/transaction/transaction_update.dart';
 
 import '../../models/customers_model.dart';
 import '../../network/service.dart';
@@ -73,13 +75,13 @@ class _TransactionListState extends State<TransactionList> {
                             children: [
                               InkWell(
                                 onTap: () {
-                                  // Navigator.push(context, MaterialPageRoute(builder: (context)=>UpdateCustomer(apiToken: widget.apiToken, branchId: widget.branchId, customerName: transactionList.elementAt(index).name, phoneNumber: transactionList.elementAt(index).phone, customerId: transactionList.elementAt(index).id,)));
+                                  Navigator.push(context, MaterialPageRoute(builder: (context)=>UpdateTransaction(apiToken: widget.apiToken, branchId: widget.branchId, customerId: widget.customerId, transactionId: transactionList.elementAt(index).id, amount: transactionList.elementAt(index).amount, details: transactionList.elementAt(index).details, billNo: transactionList.elementAt(index).billNo,)));
                                 },
                                 child: Text('Update'),
                               ),
                               IconButton(
                                 onPressed: () {
-                                  // _deleteCustomerApi(widget.branchId, index, transactionList.elementAt(index).id,);
+                                  _deleteTransactionApi(widget.branchId, index, transactionList.elementAt(index).id,);
                                 },
                                 icon: Icon(Icons.delete_forever),
                               ),
@@ -94,9 +96,9 @@ class _TransactionListState extends State<TransactionList> {
           ),
           ElevatedButton(
             onPressed: () {
-              // Navigator.push(context, MaterialPageRoute(builder: (context)=>CreateCustomer(apiToken: widget.apiToken, branchId: widget.branchId,)));
+              Navigator.push(context, MaterialPageRoute(builder: (context)=>CreateTransaction(apiToken: widget.apiToken, branchId: widget.branchId, customerId: widget.customerId,)));
             },
-            child: Text('Create Customer'),
+            child: Text('Create Transaction'),
           ),
           SizedBox(height: 40,)
         ],
@@ -127,10 +129,9 @@ class _TransactionListState extends State<TransactionList> {
     }
   }
 
-/*
-  Future<void> _deleteCustomerApi(String branchId, int index, String customerId) async {
+  Future<void> _deleteTransactionApi(String branchId, int index, String transactionId) async {
 
-    final url = '${ApiService.baseUrl}admin/${branchId}/customer/${customerId}/delete';
+    final url = '${ApiService.baseUrl}admin/$branchId/customer/transaction/$transactionId/delete';
 
     final response = await http.delete(
       Uri.parse(url),
@@ -147,14 +148,13 @@ class _TransactionListState extends State<TransactionList> {
           transactionList.removeAt(index);
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Customer deleted successfully')),
+          SnackBar(content: Text('Transaction deleted successfully')),
         );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to Delete Customer')),
+        SnackBar(content: Text('Failed to Delete Transaction')),
       );
     }
   }
-*/
 }
