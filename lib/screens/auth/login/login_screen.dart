@@ -34,7 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
             Container(
               padding: EdgeInsets.only(left: 35, top: 130),
               child: Text(
-                'Welcome\nBack',
+                'Welcome to\nRetina Soft',
                 style: TextStyle(color: Colors.white, fontSize: 33),
               ),
             ),
