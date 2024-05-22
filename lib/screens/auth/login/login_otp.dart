@@ -2,79 +2,139 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:retinasoft_skill_test/network/service.dart';
-import 'package:retinasoft_skill_test/screens/auth/login/login_screen.dart';
 
-class LoginOtp extends StatefulWidget {
-  const LoginOtp({super.key});
+import '../../../network/service.dart';
+import '../../../widgets/bottom_navbar.dart';
+
+class LoginOtpScreen extends StatefulWidget {
+  final String email;
+  const LoginOtpScreen({Key? key, required this.email}) : super(key: key);
 
   @override
-  State<LoginOtp> createState() => _LoginOtpState();
+  _LoginOtpScreenState createState() => _LoginOtpScreenState();
 }
 
-class _LoginOtpState extends State<LoginOtp> {
-  final TextEditingController _emailController = TextEditingController();
+class _LoginOtpScreenState extends State<LoginOtpScreen> {
+  final TextEditingController _otpController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text("Login",style: TextStyle(fontSize: 40),),
-              SizedBox(height: 100,),
-              TextField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.emailAddress,
+    return Container(
+      decoration: BoxDecoration(
+        image: DecorationImage(
+            image: AssetImage('assets/images/login.png'), fit: BoxFit.cover),
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Stack(
+          children: [
+            Container(),
+            Container(
+              padding: EdgeInsets.only(left: 35, top: 130),
+              child: Text(
+                'Insert\nOTP',
+                style: TextStyle(color: Colors.white, fontSize: 33),
               ),
+            ),
+            SingleChildScrollView(
+              child: Container(
+                padding: EdgeInsets.only(
+                    top: MediaQuery.of(context).size.height * 0.5),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      margin: EdgeInsets.only(left: 35, right: 35),
+                      child: Column(
+                        children: [
+                          TextField(
+                            keyboardType: TextInputType.number,
+                            controller: _otpController,
+                            style: TextStyle(color: Colors.black),
+                            decoration: InputDecoration(
+                                fillColor: Colors.grey.shade100,
+                                filled: true,
+                                hintText: "OTP",
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                )),
+                          ),
 
-              SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: () {
-                  if(_emailController.text.isEmpty){
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Please insert your email first"),
+                          SizedBox(
+                            height: 40,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Confirm OTP',
+                                style: TextStyle(
+                                    fontSize: 27, fontWeight: FontWeight.w700),
+                              ),
+                              CircleAvatar(
+                                radius: 30,
+                                backgroundColor: Color(0xff4c505b),
+                                child: InkWell(
+                                    onTap: () {
+                                      if(_otpController.text.isEmpty){
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text("Please insert your OTP first"),
+                                          ),
+                                        );
+                                      }else{
+                                        setState(() {
+                                          _isLoading = true;
+                                        });
+                                        _callOtpApi();
+                                      }
+                                    },
+                                    child: _isLoading?SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(color: Colors.white,)):Icon(
+                                      Icons.arrow_forward,color: Colors.white,
+                                    )),
+                              )
+                            ],
+                          ),
+                        ],
                       ),
-                    );
-                  }else{
-                    _loginOtp();
-                  }
-                },
-                child: Text('Next'),
+                    )
+                  ],
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
-
-  Future<void> _loginOtp() async {
-
+  Future<void> _callOtpApi() async {
     final response = await http.post(
-      Uri.parse(ApiService.loginOtpUrl),
+      Uri.parse(ApiService.loginUrl),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
       body: jsonEncode(<String, String>{
-        'identifier': _emailController.text,
+        'otp_code': _otpController.text,
+        'identifier': widget.email,
       }),
     );
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = json.decode(response.body);
 
-      if(responseData['description'] == "Success"){
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>LoginScreen(email: _emailController.text)));
-      }else{
+      if (responseData['status'] == 200) {
+        final user = responseData['user'];
+        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>BottomNavBar(
+          apiToken: user['api_token'].toString(),
+        )), (route) => false);
+        setState(() {
+          _isLoading = false;
+        });
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(responseData['description']),
@@ -85,7 +145,7 @@ class _LoginOtpState extends State<LoginOtp> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text('Bad Data/Network'),
+          title: Text('Login Failed'),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -99,7 +159,7 @@ class _LoginOtpState extends State<LoginOtp> {
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _otpController.dispose();
     super.dispose();
   }
 }

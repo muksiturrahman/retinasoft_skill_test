@@ -1,67 +1,138 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:retinasoft_skill_test/screens/auth/login/login_otp.dart';
-import 'dart:convert';
-import '../../../network/service.dart';
 
-class RegistrationOtp extends StatefulWidget {
+import '../../../network/service.dart';
+import '../login/login_screen.dart';
+
+class RegistrationOtpScreen extends StatefulWidget {
   final String identifierId;
-  const RegistrationOtp({super.key, required this.identifierId});
+  const RegistrationOtpScreen({Key? key,required this.identifierId}) : super(key: key);
 
   @override
-  State<RegistrationOtp> createState() => _RegistrationOtpState();
+  _RegistrationOtpScreenState createState() => _RegistrationOtpScreenState();
 }
 
-class _RegistrationOtpState extends State<RegistrationOtp> {
+class _RegistrationOtpScreenState extends State<RegistrationOtpScreen> {
   final TextEditingController _otpController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextField(
-                controller: _otpController,
-                decoration: InputDecoration(
-                  labelText: 'OTP',
-                  border: OutlineInputBorder(),
-                ),
-                obscureText: false,
+    return Container(
+      decoration: BoxDecoration(
+        image: DecorationImage(
+            image: AssetImage('assets/images/login.png'), fit: BoxFit.cover),
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Stack(
+          children: [
+            Container(),
+            Container(
+              padding: EdgeInsets.only(left: 35, top: 130),
+              child: Text(
+                'Insert\nOTP',
+                style: TextStyle(color: Colors.white, fontSize: 33),
               ),
-              SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: () {
-                  if(_otpController.text.isEmpty){
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Please insert your otp first"),
+            ),
+            SingleChildScrollView(
+              child: Container(
+                padding: EdgeInsets.only(
+                    top: MediaQuery.of(context).size.height * 0.5),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      margin: EdgeInsets.only(left: 35, right: 35),
+                      child: Column(
+                        children: [
+                          TextField(
+                            keyboardType: TextInputType.number,
+                            controller: _otpController,
+                            style: TextStyle(color: Colors.black),
+                            decoration: InputDecoration(
+                                fillColor: Colors.grey.shade100,
+                                filled: true,
+                                hintText: "OTP",
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                )),
+                          ),
+
+                          SizedBox(
+                            height: 40,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Confirm OTP',
+                                style: TextStyle(
+                                    fontSize: 27, fontWeight: FontWeight.w700),
+                              ),
+                              CircleAvatar(
+                                radius: 30,
+                                backgroundColor: Color(0xff4c505b),
+                                child: InkWell(
+                                    onTap: () {
+                                      if(_otpController.text.isEmpty){
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text("Please insert your OTP first"),
+                                          ),
+                                        );
+                                      }else{
+                                        setState(() {
+                                          _isLoading = true;
+                                        });
+                                        _callRegistrationOtpApi();
+                                      }
+                                    },
+                                    child: _isLoading?SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(color: Colors.white,)):Icon(
+                                      Icons.arrow_forward,color: Colors.white,
+                                    )),
+                              )
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              TextButton(
+                                onPressed: () {
+                                  _callResendOtp();
+                                },
+                                child: Text(
+                                  'Resend OTP',
+                                  textAlign: TextAlign.left,
+                                  style: TextStyle(
+                                    decoration: TextDecoration.underline,
+                                    color: Color(0xff4c505b),
+                                    fontSize: 18,
+                                  ),
+                                ),
+                                style: ButtonStyle(),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                    );
-                  }else{
-                    _registrationOtpApi();
-                  }
-                },
-                child: Text('Register'),
+                    )
+                  ],
+                ),
               ),
-              SizedBox(height: 10,),
-              InkWell(
-                onTap: () {
-                  _callResendOtp();
-                },
-                  child: Text('Resend OTP',style: TextStyle(color: Colors.red),),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Future<void> _registrationOtpApi() async {
+  Future<void> _callRegistrationOtpApi() async {
 
     final response = await http.post(
       Uri.parse(ApiService.registrationOtpUrl),
@@ -79,7 +150,10 @@ class _RegistrationOtpState extends State<RegistrationOtp> {
 
       if(responseData['status'] == 200){
         print("Success");
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>LoginOtp()));
+        setState(() {
+          _isLoading = false;
+        });
+        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>LoginScreen()), (route) => false);
       }else{
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -91,7 +165,7 @@ class _RegistrationOtpState extends State<RegistrationOtp> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text('Login Failed'),
+          title: Text('Registration Failed'),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -132,4 +206,9 @@ class _RegistrationOtpState extends State<RegistrationOtp> {
     }
   }
 
+  @override
+  void dispose() {
+    _otpController.dispose();
+    super.dispose();
+  }
 }

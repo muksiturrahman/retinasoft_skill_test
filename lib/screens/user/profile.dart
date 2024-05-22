@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:retinasoft_skill_test/network/service.dart';
-import 'package:retinasoft_skill_test/screens/auth/initial_screen.dart';
+import 'package:retinasoft_skill_test/screens/auth/login/login_screen.dart';
 import 'package:retinasoft_skill_test/screens/user/update_profile.dart';
 
 class Profile extends StatefulWidget {
@@ -136,7 +136,7 @@ class _ProfileState extends State<Profile> {
       final responseData = json.decode(response.body);
       if(responseData['status'] == 200){
         Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) =>
-            InitialScreen()), (Route<dynamic> route) => false);
+            LoginScreen()), (Route<dynamic> route) => false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(responseData['description'] ?? 'Account deleted successfully'),
@@ -167,7 +167,7 @@ class _ProfileState extends State<Profile> {
       final responseData = json.decode(response.body);
       if(responseData['status'] == 200){
         Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) =>
-            InitialScreen()), (Route<dynamic> route) => false);
+            LoginScreen()), (Route<dynamic> route) => false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(responseData['description'] ?? 'Logout success'),

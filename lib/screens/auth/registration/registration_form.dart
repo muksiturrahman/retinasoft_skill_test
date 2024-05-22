@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:retinasoft_skill_test/screens/auth/login/login_screen.dart';
 import 'package:retinasoft_skill_test/screens/auth/registration/registration_otp.dart';
 
 import '../../../models/business_type_model.dart';
@@ -10,10 +11,10 @@ import '../../../network/service.dart';
 import 'package:http/http.dart' as http;
 
 class RegistrationForm extends StatefulWidget {
-  const RegistrationForm({super.key});
+  const RegistrationForm({Key? key}) : super(key: key);
 
   @override
-  State<RegistrationForm> createState() => _RegistrationFormState();
+  _RegistrationFormState createState() => _RegistrationFormState();
 }
 
 class _RegistrationFormState extends State<RegistrationForm> {
@@ -22,6 +23,7 @@ class _RegistrationFormState extends State<RegistrationForm> {
   final TextEditingController _phoneController = TextEditingController();
 
 
+  bool _isLoading = false;
   BusinessType? _selectedBusinessName;
   BusinessType? _selectedBusinessTypeId;
 
@@ -38,133 +40,204 @@ class _RegistrationFormState extends State<RegistrationForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Registration Form'),
+    return Container(
+      decoration: BoxDecoration(
+        image: DecorationImage(
+            image: AssetImage('assets/images/register.png'), fit: BoxFit.cover),
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextField(
-                  controller: _nameController,
-                  decoration: InputDecoration(
-                    labelText: 'Name',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                SizedBox(height: 16.0),
-
-                // Email TextField
-                TextField(
-                  controller: _emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                SizedBox(height: 16.0),
-
-                TextField(
-                  controller: _phoneController,
-                  decoration: InputDecoration(
-                    labelText: 'Phone',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                SizedBox(height: 16.0),
-
-                DropdownButtonFormField<BusinessType>(
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                  ),
-                  hint: const Text(
-                    'Select Business Name',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                  value: _selectedBusinessName,
-                  onChanged: (BusinessType? newValue) {
-                    setState(() {
-                      _selectedBusinessName = newValue!;
-                    });
-                  },
-                  items: businessTypes
-                      .map((BusinessType businessName) {
-                    return DropdownMenuItem<BusinessType>(
-                      value: businessName,
-                      child: Text(
-                        businessName.name,
-                      ),
-                    );
-                  }).toList(),
-                ),
-                SizedBox(height: 16.0),
-
-                DropdownButtonFormField<BusinessType>(
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                  ),
-                  hint: const Text(
-                    'Select Business Type Id',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                  value: _selectedBusinessTypeId,
-                  onChanged: (BusinessType? newValue) {
-                    setState(() {
-                      _selectedBusinessTypeId = newValue!;
-                    });
-                  },
-                  items: businessTypes
-                      .map((BusinessType businessTypeId) {
-                    return DropdownMenuItem<BusinessType>(
-                      value: businessTypeId,
-                      child: Text(
-                        businessTypeId.id,
-                      ),
-                    );
-                  }).toList(),
-                ),
-
-                SizedBox(height: 16.0),
-
-                SizedBox(height: 32.0),
-
-                // Register Button
-                Center(
-                  child: ElevatedButton(
-                    onPressed: () {
-
-                      if(
-                      _selectedBusinessTypeId.toString().isEmpty ||
-                          _selectedBusinessName.toString().isEmpty ||
-                      _nameController.text.isEmpty ||
-                      _emailController.text.isEmpty ||
-                      _phoneController.text.isEmpty
-                      ){
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text("Field is Empty"),
-                          ),
-                        );
-                      }else{
-                        _registrationApi();
-                      }
-                    },
-                    child: Text('Next'),
-                  ),
-                ),
-              ],
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          automaticallyImplyLeading: false,
+        ),
+        body: Stack(
+          children: [
+            Container(
+              padding: EdgeInsets.only(left: 35, top: 30),
+              child: Text(
+                'Create\nAccount',
+                style: TextStyle(color: Colors.white, fontSize: 33),
+              ),
             ),
-          ),
+            SingleChildScrollView(
+              child: Container(
+                padding: EdgeInsets.only(
+                    top: MediaQuery.of(context).size.height * 0.28),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      margin: EdgeInsets.only(left: 35, right: 35),
+                      child: Column(
+                        children: [
+                          customTextField(_nameController, "Name"),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          customTextField(_emailController, "Email"),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          customTextField(_phoneController, "Phone Number"),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          DropdownButtonFormField<BusinessType>(
+                            decoration: InputDecoration(
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                )),
+                            hint: const Text(
+                              'Select Business Name',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            value: _selectedBusinessName,
+                            onChanged: (BusinessType? newValue) {
+                              setState(() {
+                                _selectedBusinessName = newValue!;
+                              });
+                            },
+                            items: businessTypes
+                                .map((BusinessType businessName) {
+                              return DropdownMenuItem<BusinessType>(
+                                value: businessName,
+                                child: Text(
+                                  businessName.name,
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                          SizedBox(height: 10.0),
+                          DropdownButtonFormField<BusinessType>(
+                            decoration: InputDecoration(
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                )),
+                            hint: const Text(
+                              'Select Business Type Id',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            value: _selectedBusinessTypeId,
+                            onChanged: (BusinessType? newValue) {
+                              setState(() {
+                                _selectedBusinessTypeId = newValue!;
+                              });
+                            },
+                            items: businessTypes
+                                .map((BusinessType businessTypeId) {
+                              return DropdownMenuItem<BusinessType>(
+                                value: businessTypeId,
+                                child: Text(
+                                  businessTypeId.id,
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                          SizedBox(
+                            height: 20,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Sign Up',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 27,
+                                    fontWeight: FontWeight.w700),
+                              ),
+                              CircleAvatar(
+                                radius: 30,
+                                backgroundColor: Color(0xff4c505b),
+                                child: InkWell(
+                                    onTap: () {
+                                      if(
+                                      _selectedBusinessTypeId.toString().isEmpty ||
+                                          _selectedBusinessName.toString().isEmpty ||
+                                          _nameController.text.isEmpty ||
+                                          _emailController.text.isEmpty ||
+                                          _phoneController.text.isEmpty
+                                      ){
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text("Field is Empty"),
+                                          ),
+                                        );
+                                      }else{
+                                        setState(() {
+                                          _isLoading = true;
+                                        });
+                                        _callRegistrationApi();
+                                      }
+                                    },
+                                    child: _isLoading? Container(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(color: Colors.white,),
+                                    ):Icon(
+                                      Icons.arrow_forward,
+                                      color: Colors.white,
+                                    )),
+                              )
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>LoginScreen()), (route) => false);
+                                },
+                                child: Text(
+                                  'Sign In',
+                                  textAlign: TextAlign.left,
+                                  style: TextStyle(
+                                      decoration: TextDecoration.underline,
+                                      color: Colors.white,
+                                      fontSize: 18),
+                                ),
+                                style: ButtonStyle(),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
-
   @override
   void dispose() {
     _nameController.dispose();
@@ -197,7 +270,7 @@ class _RegistrationFormState extends State<RegistrationForm> {
     }
   }
 
-  Future<void> _registrationApi() async {
+  Future<void> _callRegistrationApi() async {
 
     final response = await http.post(
       Uri.parse(ApiService.registrationUrl),
@@ -217,7 +290,10 @@ class _RegistrationFormState extends State<RegistrationForm> {
       final Map<String, dynamic> responseData = json.decode(response.body);
 
       if(responseData['status'] == 200){
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>RegistrationOtp(identifierId: responseData['identifier_id'].toString(),)));
+        Navigator.push(context, MaterialPageRoute(builder: (context)=>RegistrationOtpScreen(identifierId: responseData['identifier_id'].toString(),)));
+        setState(() {
+          _isLoading = false;
+        });
       }else{
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -240,5 +316,31 @@ class _RegistrationFormState extends State<RegistrationForm> {
       );
     }
   }
-
 }
+
+
+Widget customTextField(TextEditingController controller, String hintText){
+  return TextField(
+    controller: controller,
+    style: TextStyle(color: Colors.white),
+    decoration: InputDecoration(
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(
+            color: Colors.white,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(
+            color: Colors.black,
+          ),
+        ),
+        hintText: hintText,
+        hintStyle: TextStyle(color: Colors.white),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+        )),
+  );
+}
+
