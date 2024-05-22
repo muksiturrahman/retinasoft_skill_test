@@ -1,7 +1,7 @@
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:retinasoft_skill_test/network/presenter.dart';
 import 'package:retinasoft_skill_test/screens/branch/create_branch.dart';
 import 'package:retinasoft_skill_test/screens/branch/update_branch.dart';
@@ -9,99 +9,159 @@ import 'package:retinasoft_skill_test/screens/customer/customer_list.dart';
 
 import '../../models/branches_model.dart';
 import '../../network/service.dart';
-import 'package:http/http.dart' as http;
 
-class HomePage extends StatefulWidget {
+class BranchList extends StatefulWidget {
   final String apiToken;
-  const HomePage({super.key, required this.apiToken});
+
+  const BranchList({super.key, required this.apiToken});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<BranchList> createState() => _BranchListState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _BranchListState extends State<BranchList> {
   List<Branch> branches = [];
-
 
   @override
   void initState() {
-    _callBranchesApi();
-    // SchedulerBinding.instance.addPostFrameCallback((_) async {
-    //   await _callBranchesApi();
-    // });
     super.initState();
+    _callBranchesApi();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Branch List'),
+        title: const Text(
+          'Branch List',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
         centerTitle: true,
-        automaticallyImplyLeading: false,
+        backgroundColor: Colors.blueAccent,
       ),
-      body: Column(
-        children: [
-          branches.isEmpty?
-              Center(
-                child: CircularProgressIndicator(),
-              ):
-          Expanded(
-            child: ListView.builder(
-            shrinkWrap: true,
-            padding: const EdgeInsets.all(15),
-            physics: AlwaysScrollableScrollPhysics(),
-            itemCount: branches.length,
-            itemBuilder: (context, index) {
-              return InkWell(
-                onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context)=> CustomerList(apiToken: widget.apiToken, branchId: branches.elementAt(index).id,)));
-                },
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            branches.isEmpty
+                ? const Center(
+              child: CircularProgressIndicator(),
+            )
+                : Expanded(
+              child: ListView.builder(
+                shrinkWrap: true,
+                padding: const EdgeInsets.all(8.0),
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemCount: branches.length,
+                itemBuilder: (context, index) {
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CustomerList(
+                            apiToken: widget.apiToken,
+                            branchId: branches.elementAt(index).id,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      elevation: 4,
+                      margin: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(branches.elementAt(index).name),
-                            Text(branches.elementAt(index).id),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  branches.elementAt(index).name,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  branches.elementAt(index).id,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                IconButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => UpdateBranch(
+                                          apiToken: widget.apiToken,
+                                          branchId: branches.elementAt(index).id,
+                                          branchName: branches.elementAt(index).name,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.edit),
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    _deleteBranchApi(branches.elementAt(index).id, index);
+                                  },
+                                  icon: const Icon(
+                                    Icons.delete_forever,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
-                        Row(
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (context)=>UpdateBranch(apiToken: widget.apiToken, branchId: branches.elementAt(index).id, branchName: branches.elementAt(index).name)));
-                              },
-                                child: Text('Update'),
-                            ),
-                            IconButton(
-                                onPressed: () {
-                                  _deleteBranchApi(branches.elementAt(index).id, index);
-                                },
-                                icon: Icon(Icons.delete_forever),
-                            ),
-                          ],
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-              );
-            }
+                  );
+                },
+              ),
             ),
-          ),
-          ElevatedButton(
+            const SizedBox(height: 20),
+            ElevatedButton(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context)=>CreateBranch(apiToken: widget.apiToken)));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CreateBranch(apiToken: widget.apiToken),
+                  ),
+                );
               },
-              child: Text('Create Branch'),
-          ),
-          SizedBox(height: 40,)
-        ],
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Create Branch',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,color: Colors.white),
+              ),
+            ),
+            const SizedBox(height: 40),
+          ],
+        ),
       ),
     );
   }
@@ -109,30 +169,23 @@ class _HomePageState extends State<HomePage> {
   Future<void> _callBranchesApi() async {
     try {
       List<BranchesModel> branchesModel = [];
-
       var branchesInfo = await initBranchesInfo(context, widget.apiToken);
-
       if (branchesInfo is String) {
-        //Error Message
+        // Error Message
       } else {
         branchesModel.add(branchesInfo);
         branches.addAll(branchesModel.elementAt(0).branches.branches);
-
         setState(() {
           branches;
         });
       }
-
-      print('');
     } catch (e) {
       print(e);
     }
   }
 
   Future<void> _deleteBranchApi(String branchId, int index) async {
-
-    final url = '${ApiService.baseUrl}admin/branch/${branchId}/delete';
-
+    final url = '${ApiService.baseUrl}admin/branch/$branchId/delete';
     final response = await http.delete(
       Uri.parse(url),
       headers: {
@@ -140,10 +193,9 @@ class _HomePageState extends State<HomePage> {
         'Authorization': 'Bearer ${widget.apiToken}',
       },
     );
-
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = json.decode(response.body);
-      if(responseData['status'] == 200){
+      if (responseData['status'] == 200) {
         setState(() {
           branches.removeAt(index);
         });
@@ -153,9 +205,8 @@ class _HomePageState extends State<HomePage> {
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update branch')),
+        SnackBar(content: Text('Failed to delete branch')),
       );
     }
   }
-
 }

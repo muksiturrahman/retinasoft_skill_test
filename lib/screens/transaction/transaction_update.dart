@@ -3,7 +3,6 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:retinasoft_skill_test/screens/transaction/transaction_list.dart';
 import 'dart:convert';
-
 import '../../network/service.dart';
 
 class UpdateTransaction extends StatefulWidget {
@@ -16,14 +15,15 @@ class UpdateTransaction extends StatefulWidget {
   final String billNo;
 
   const UpdateTransaction({
-    super.key,
+    Key? key,
     required this.apiToken,
     required this.branchId,
     required this.transactionId,
     required this.amount,
     required this.details,
-    required this.billNo, required this.customerId,
-  });
+    required this.billNo,
+    required this.customerId,
+  }) : super(key: key);
 
   @override
   State<UpdateTransaction> createState() => _UpdateTransactionState();
@@ -35,6 +35,7 @@ class _UpdateTransactionState extends State<UpdateTransaction> {
   late TextEditingController _billNoController;
 
   String _formattedDateTime = '';
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -61,37 +62,33 @@ class _UpdateTransactionState extends State<UpdateTransaction> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextField(
+            _buildTextField(
               controller: _amountController,
-              decoration: InputDecoration(
-                labelText: 'Amount',
-                border: OutlineInputBorder(),
-              ),
+              label: 'Amount',
             ),
-            SizedBox(height: 16),
-            TextField(
+            const SizedBox(height: 16),
+            _buildTextField(
               controller: _detailsController,
-              decoration: InputDecoration(
-                labelText: 'Details',
-                border: OutlineInputBorder(),
-              ),
+              label: 'Details',
             ),
-            SizedBox(height: 16),
-            TextField(
+            const SizedBox(height: 16),
+            _buildTextField(
               controller: _billNoController,
-              decoration: InputDecoration(
-                labelText: 'Bill No',
-                border: OutlineInputBorder(),
-              ),
+              label: 'Bill No',
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
                 _getCurrentDateTime();
-                if (_amountController.text.isNotEmpty ||
-                    _detailsController.text.isNotEmpty ||
-                _billNoController.text.isNotEmpty && _formattedDateTime.isNotEmpty) {
+                if (_amountController.text.isNotEmpty &&
+                    _detailsController.text.isNotEmpty &&
+                    _billNoController.text.isNotEmpty &&
+                    _formattedDateTime.isNotEmpty) {
+                  setState(() {
+                    _isLoading = true;
+                  });
                   _updateTransactionApi();
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -99,9 +96,37 @@ class _UpdateTransactionState extends State<UpdateTransaction> {
                   );
                 }
               },
-              child: const Text('Update Transaction'),
+              child: _isLoading?CircularProgressIndicator(color: Colors.white,): Text('Update Transaction'),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+  }) {
+    return TextField(
+      controller: controller,
+      style: TextStyle(
+        color: Colors.black87,
+        fontSize: 16.0,
+      ),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(
+          color: Colors.grey,
+          fontSize: 18.0,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.grey),
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.blue),
+          borderRadius: BorderRadius.circular(10.0),
         ),
       ),
     );
@@ -130,25 +155,34 @@ class _UpdateTransactionState extends State<UpdateTransaction> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Transaction updated successfully')),
         );
-        /*Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) =>
-            BottomNavBar(apiToken: widget.apiToken)), (Route<dynamic> route) => false);*/
-        Navigator.push(
+        Navigator.pop(context);
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => TransactionList(
-                apiToken: widget.apiToken, branchId: widget.branchId, customerId: widget.customerId,),
+              apiToken: widget.apiToken,
+              branchId: widget.branchId,
+              customerId: widget.customerId,
+            ),
           ),
         );
+        setState(() {
+          _isLoading = false;
+        });
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to update Transaction')),
       );
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
+
   void _getCurrentDateTime() {
-    DateTime now = DateTime.now();
-    String formattedDateTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
+    final now = DateTime.now();
+    final formattedDateTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
     setState(() {
       _formattedDateTime = formattedDateTime;
     });

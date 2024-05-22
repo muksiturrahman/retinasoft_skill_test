@@ -8,6 +8,7 @@ import 'package:retinasoft_skill_test/screens/customer/customer_list.dart';
 class CreateCustomer extends StatefulWidget {
   final String apiToken;
   final String branchId;
+
   const CreateCustomer({super.key, required this.apiToken, required this.branchId});
 
   @override
@@ -20,13 +21,22 @@ class _CreateCustomerState extends State<CreateCustomer> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _typeController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Create Customer'),
+        title: const Text(
+          'Create Customer',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white
+          ),
+        ),
         centerTitle: true,
+        backgroundColor: Colors.blueAccent,
         automaticallyImplyLeading: false,
       ),
       body: Padding(
@@ -34,53 +44,47 @@ class _CreateCustomerState extends State<CreateCustomer> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              TextField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                    labelText: 'Name',
-                  border: OutlineInputBorder()
-                ),
-              ),
-              SizedBox(height: 16.0),
-              TextField(
-                controller: _phoneController,
-                decoration: InputDecoration(
-                    labelText: 'Phone',
-                    border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 16.0),
-              TextField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 16.0),
-              TextField(
-                controller: _typeController,
-                decoration: InputDecoration(
-                    labelText: 'Type',
-                    border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 16.0),
-              TextField(
-                controller: _addressController,
-                decoration: InputDecoration(
-                    labelText: 'Address',
-                    border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 16.0),
+              _buildTextField(_nameController, 'Name', Icons.person),
+              const SizedBox(height: 16.0),
+              _buildTextField(_phoneController, 'Phone', Icons.phone),
+              const SizedBox(height: 16.0),
+              _buildTextField(_emailController, 'Email', Icons.email),
+              const SizedBox(height: 16.0),
+              _buildTextField(_typeController, 'Type', Icons.category),
+              const SizedBox(height: 16.0),
+              _buildTextField(_addressController, 'Address', Icons.location_on),
+              const SizedBox(height: 32.0),
               ElevatedButton(
                 onPressed: _createCustomer,
-                child: Text('Create Customer'),
+                style: ElevatedButton.styleFrom(
+                  // primary: Colors.blueAccent,
+                  backgroundColor: Colors.blueAccent,
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: _isLoading? CircularProgressIndicator(color: Colors.white,) : Text(
+                  'Create Customer',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,color: Colors.white),
+                ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        prefixIcon: Icon(icon),
       ),
     );
   }
@@ -95,8 +99,10 @@ class _CreateCustomerState extends State<CreateCustomer> {
     super.dispose();
   }
 
-
   Future<void> _createCustomer() async {
+    setState(() {
+      _isLoading = true;
+    });
     final url = '${ApiService.baseUrl}admin/${widget.branchId}/customer/create';
     final response = await http.post(
       Uri.parse(url),
@@ -119,17 +125,31 @@ class _CreateCustomerState extends State<CreateCustomer> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Customer created successfully')),
         );
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>CustomerList(apiToken: widget.apiToken, branchId: widget.branchId)));
+        Navigator.pop(context);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CustomerList(apiToken: widget.apiToken, branchId: widget.branchId),
+          ),
+        );
+        setState(() {
+          _isLoading = false;
+        });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to create customer: ${responseData['description']}')),
         );
+        setState(() {
+          _isLoading = false;
+        });
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to create customer')),
       );
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
-
 }

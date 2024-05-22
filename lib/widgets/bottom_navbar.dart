@@ -22,7 +22,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
   void initState() {
     super.initState();
     _widgetOptions = <Widget>[
-      HomePage(apiToken: widget.apiToken),
+      BranchList(apiToken: widget.apiToken),
       const SettingsScreen(),
       Profile(apiToken: widget.apiToken,),
     ];

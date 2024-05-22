@@ -135,6 +135,9 @@ class _LoginOtpScreenState extends State<LoginOtpScreen> {
           _isLoading = false;
         });
       } else {
+        setState(() {
+          _isLoading = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(responseData['description']),

@@ -4,7 +4,6 @@ import 'package:retinasoft_skill_test/screens/customer/customer_list.dart';
 import 'dart:convert';
 
 import '../../network/service.dart';
-import '../../widgets/bottom_navbar.dart';
 
 class UpdateCustomer extends StatefulWidget {
   final String apiToken;
@@ -29,6 +28,7 @@ class UpdateCustomer extends StatefulWidget {
 class _UpdateCustomerState extends State<UpdateCustomer> {
   late TextEditingController _customerNameController;
   late TextEditingController _phoneNumberController;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -36,7 +36,6 @@ class _UpdateCustomerState extends State<UpdateCustomer> {
     _customerNameController = TextEditingController(text: widget.customerName);
     _phoneNumberController = TextEditingController(text: widget.phoneNumber);
   }
-
 
   @override
   void dispose() {
@@ -49,45 +48,99 @@ class _UpdateCustomerState extends State<UpdateCustomer> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Update Customer'),
+        title: const Text(
+          'Update Customer',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.blueAccent,
+        automaticallyImplyLeading: false,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextField(
+            _buildTextField(
               controller: _customerNameController,
-              decoration: InputDecoration(
-                labelText: 'Customer Name',
-                border: OutlineInputBorder(),
-              ),
+              label: 'Customer Name',
+              icon: Icons.person,
             ),
-            SizedBox(height: 16),
-            TextField(
+            const SizedBox(height: 16),
+            _buildTextField(
               controller: _phoneNumberController,
-              decoration: InputDecoration(
-                labelText: 'Phone Number',
-                border: OutlineInputBorder(),
-              ),
+              label: 'Phone Number',
+              icon: Icons.phone,
+              keyboardType: TextInputType.phone,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
               onPressed: () {
                 if (_customerNameController.text.isNotEmpty || _phoneNumberController.text.isNotEmpty) {
+                  setState(() {
+                    _isLoading = true;
+                  });
                   _updateCustomerApi();
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Please enter a customer name')),
+                    const SnackBar(content: Text('Please enter a customer name')),
                   );
                 }
               },
-              child: Text('Update Customer'),
+              child: _isLoading? CircularProgressIndicator(color: Colors.white,): Text(
+                'Update Customer',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ],
         ),
       ),
     );
   }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return TextField(
+      controller: controller,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: Colors.blueAccent),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.blueAccent, width: 2),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.blueAccent, width: 2),
+        ),
+        filled: true,
+        fillColor: Colors.blueAccent.withOpacity(0.05),
+      ),
+    );
+  }
+
   Future<void> _updateCustomerApi() async {
     final url = '${ApiService.baseUrl}admin/${widget.branchId}/customer/${widget.customerId}/update';
     final response = await http.post(
@@ -105,19 +158,23 @@ class _UpdateCustomerState extends State<UpdateCustomer> {
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = json.decode(response.body);
-      if(responseData['status'] == 200){
+      if (responseData['status'] == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Customer updated successfully')),
+          const SnackBar(content: Text('Customer updated successfully')),
         );
-        /*Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) =>
-            BottomNavBar(apiToken: widget.apiToken)), (Route<dynamic> route) => false);*/
-        Navigator.push(context, MaterialPageRoute(builder: (context)=>CustomerList(apiToken: widget.apiToken, branchId: widget.branchId),),);
+        Navigator.pop(context);
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>CustomerList(apiToken: widget.apiToken, branchId: widget.branchId)));
+        setState(() {
+          _isLoading = false;
+        });
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update Customer')),
+        const SnackBar(content: Text('Failed to update customer')),
       );
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
-
 }
